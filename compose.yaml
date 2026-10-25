@@ -1,0 +1,29 @@
+# מגדיר את שירות מסד הנתונים המקומי.
+services:
+  postgres:
+    image: postgres:16-alpine
+
+    # יוצר את מסד הנתונים והמשתמש לפי הערכים שלהלן.
+    environment:
+      POSTGRES_DB: padel_match_tracker
+      POSTGRES_USER: padel_app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    # מאפשר גישה למסד הנתונים רק מתוך המכונה הווירטואלית.
+    ports:
+      - "127.0.0.1:5432:5432"
+
+    # שומר את הנתונים גם כאשר המכולה נוצרת מחדש.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    # בודק שמסד הנתונים מוכן לקבל חיבורים.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+# מגדיר אזור אחסון קבוע לנתוני מסד הנתונים.
+volumes:
+  postgres_data:
