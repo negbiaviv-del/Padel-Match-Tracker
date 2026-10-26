@@ -1,6 +1,5 @@
 # מייבא את לקוח הבדיקות של השירות.
-from fastapi.testclient import TestClient
-
+from fastapi.testclient import TestClient  # לקוח פנימי לבדיקות השירות.
 
 # מחזיר מידע תקין שאפשר לשלוח ליצירת משחק.
 def valid_match_payload() -> dict[str, object]:
@@ -17,6 +16,13 @@ def valid_match_payload() -> dict[str, object]:
 # בודק שהשירות עצמו פעיל.
 def test_liveness_returns_ok(client: TestClient) -> None:
     response = client.get("/health/live")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+# בודק שהשירות מוכן לעבוד עם מסד הנתונים.
+def test_readiness_returns_ok(client: TestClient) -> None:
+    response = client.get("/health/ready")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
