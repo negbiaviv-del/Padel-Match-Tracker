@@ -74,5 +74,12 @@ def test_create_match_rejects_duplicate_player(client: TestClient) -> None:
 
     assert response.status_code == 422
 
-    details = response.json()["detail"]
-    assert "a player cannot appear more than once" in details[0]["msg"]
+    error = response.json()["error"]
+    assert error["code"] == "validation_error"
+    assert error["message"] == "The request contains invalid data."
+    assert error["fields"] == [
+        {
+            "field": "body",
+            "message": "a player cannot appear more than once",
+        }
+    ]

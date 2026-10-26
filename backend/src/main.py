@@ -1,12 +1,14 @@
 # מייבא את הכלים הדרושים להפעלת השירות, למסד הנתונים ולמבני המידע.
-from fastapi import Depends, FastAPI, HTTPException, status
-from sqlalchemy import select
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from fastapi import Depends, FastAPI, HTTPException, Request, status  # כלי שירות, בקשה ושגיאות.
+from fastapi.exceptions import RequestValidationError  # שגיאת אימות בקשה.
+from fastapi.responses import JSONResponse  # תשובת JSON מותאמת.
+from sqlalchemy import select  # בניית שאילתת קריאה.
+from sqlalchemy.exc import SQLAlchemyError  # שגיאת מסד נתונים.
+from sqlalchemy.orm import Session  # פעולה מול מסד הנתונים.
 
-from .database import check_database_connection, get_db
-from .models import Match
-from .schemas import MatchCreate, MatchRead
+from .database import check_database_connection, get_db  # בדיקת מסד וחיבור לבקשה.
+from .models import Match  # מודל טבלת המשחקים.
+from .schemas import MatchCreate, MatchRead  # מבני קלט ופלט לשירות.
 
 
 # יוצר את השירות הראשי ונותן לו שם וגרסה.
@@ -14,6 +16,41 @@ app = FastAPI(
     title="Padel Match Tracker API",
     version="0.1.0",
 )
+
+
+# מחזיר מבנה שגיאה קבוע וברור כאשר נתוני בקשה אינם תקינים.
+@app.exception_handler(RequestValidationError)
+async def request_validation_exception_handler(
+    _request: Request,
+    exc: RequestValidationError,
+) -> JSONResponse:
+    fields = []
+
+    # ממיר כל שגיאה פנימית לשם שדה ולהודעה בטוחים עבור הלקוח.
+    for error in exc.errors():
+        location = [
+            str(part)
+            for part in error["loc"]
+            if part != "body"
+        ]
+        fields.append(
+            {
+                "field": ".".join(location) or "body",
+                "message": error["msg"].removeprefix("Value error, "),
+            }
+        )
+
+    # מחזיר שגיאה קצרה בלי הערכים הפנימיים שנשלחו בבקשה.
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        content={
+            "error": {
+                "code": "validation_error",
+                "message": "The request contains invalid data.",
+                "fields": fields,
+            }
+        },
+    )
 
 
 # ממיר רשומה ממסד הנתונים לתשובה בטוחה עבור הלקוח.
@@ -92,6 +129,7 @@ def create_match(
         ) from error
 
     return to_match_read(match)
+
 
 # מחזיר את היסטוריית המשחקים מהחדש לישן.
 @app.get(
