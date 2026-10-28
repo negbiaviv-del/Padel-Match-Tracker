@@ -1,10 +1,10 @@
 # מגדיר את שירותי הפיתוח המקומיים של הפרויקט.
 services:
-  # מפעיל מסד נתונים מקומי ושומר את נתוניו בנפח קבוע.
+  # מפעיל את מסד הנתונים ושומר את נתוניו בנפח קבוע.
   postgres:
     image: postgres:16-alpine
 
-    # יוצר את מסד הנתונים והמשתמש לפי הערכים שלהלן.
+    # יוצר את מסד הנתונים ואת המשתמש הדרושים לשירות.
     environment:
       POSTGRES_DB: padel_match_tracker
       POSTGRES_USER: padel_app
@@ -14,7 +14,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
 
-    # שומר את הנתונים גם כאשר המכולה נוצרת מחדש.
+    # שומר את נתוני מסד הנתונים גם אם המכולה נוצרת מחדש.
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -25,7 +25,7 @@ services:
       timeout: 3s
       retries: 10
 
-  # בונה ומפעיל את שירות ה־API מתוך התמונה המקומית.
+  # בונה ומפעיל את שירות הנתונים.
   backend:
     build:
       context: ./backend
@@ -48,6 +48,21 @@ services:
       postgres:
         condition: service_healthy
 
-# מגדיר אזור אחסון קבוע לנתוני מסד הנתונים.
+  # בונה ומפעיל את ממשק המשתמש.
+  frontend:
+    build:
+      context: ./frontend
+    image: padel-match-tracker-frontend:local
+
+    # מאפשר לפתוח את הממשק רק מתוך המכונה הווירטואלית.
+    ports:
+      - "127.0.0.1:8080:8080"
+
+    # מפעיל את הממשק לאחר ששירות הנתונים התחיל.
+    depends_on:
+      backend:
+        condition: service_started
+
+# מגדיר נפח קבוע לנתוני מסד הנתונים.
 volumes:
   postgres_data:

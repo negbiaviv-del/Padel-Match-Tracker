@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- מגדיר קידוד, התאמה לנייד ומידע בסיסי על העמוד. -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A premium dashboard for recording and reviewing padel matches."
+    />
+    <meta name="theme-color" content="#102a2a" />
+    <title>Padel Match Tracker</title>
+
+    <!-- מחבר את קובצי העיצוב וההתנהגות של הממשק. -->
+    <link rel="stylesheet" href="./styles.__BUILD_HASH__.css" />
+    <script src="./app.__BUILD_HASH__.js" defer></script>
+  </head>
+
+  <body>
+    <!-- מאפשר למשתמשי מקלדת לדלג ישירות אל התוכן הראשי. -->
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <!-- עוטף את כל אזורי הממשק ואת קישוטי הרקע. -->
+    <div class="app-shell">
+      <div class="ambient-shape ambient-shape--one" aria-hidden="true"></div>
+      <div class="ambient-shape ambient-shape--two" aria-hidden="true"></div>
+
+      <!-- מציג מותג ומצב חיבור עדכני לשירות. -->
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Padel Match Tracker home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path
+                d="M8.2 4.5h10.1a5.2 5.2 0 0 1 5.2 5.2v12.6a5.2 5.2 0 0 1-5.2 5.2H8.2A3.7 3.7 0 0 1 4.5 23.8V8.2a3.7 3.7 0 0 1 3.7-3.7Z"
+              />
+              <path d="M10 9.5h7.5a3 3 0 0 1 0 6H10v-6Z" />
+              <path d="M10 15.5h9a3.5 3.5 0 0 1 0 7h-9v-7Z" />
+              <circle cx="23.8" cy="8.2" r="2.3" />
+            </svg>
+          </span>
+          <span>
+            <strong>Padel Match Tracker</strong>
+            <small>Play. Record. Improve.</small>
+          </span>
+        </a>
+
+        <div
+          id="connection-status"
+          class="connection-status"
+          role="status"
+          aria-live="polite"
+        >
+          <span class="status-dot" aria-hidden="true"></span>
+          <span data-connection-text>Checking connection</span>
+        </div>
+      </header>
+
+      <!-- מציג כותרת, נתונים כלליים ואזורי ניהול משחקים. -->
+      <main id="main-content">
+        <section class="hero" aria-labelledby="page-title">
+          <div class="hero__content">
+            <p class="eyebrow">Your court, your story</p>
+            <h1 id="page-title">Every match deserves a record.</h1>
+            <p class="hero__description">
+              Capture results, follow your game history, and keep every rally
+              within reach.
+            </p>
+
+            <a class="hero__action" href="#new-match">
+              Record a match
+              <span aria-hidden="true">↓</span>
+            </a>
+          </div>
+
+          <dl class="hero-stats" aria-label="Match summary">
+            <div>
+              <dt>Total matches</dt>
+              <dd id="hero-match-count">—</dd>
+            </div>
+            <div>
+              <dt>Latest result</dt>
+              <dd id="hero-latest-result">—</dd>
+            </div>
+          </dl>
+        </section>
+
+        <!-- מחלק את המסך לטופס יצירה ולהיסטוריית משחקים. -->
+        <section class="workspace" aria-label="Match management">
+          <article id="new-match" class="panel panel--form">
+            <header class="panel__header">
+              <div>
+                <p class="eyebrow">New result</p>
+                <h2>Record a match</h2>
+              </div>
+              <span class="panel__step">01</span>
+            </header>
+
+            <!-- אוסף מידע תקין לפני שליחתו לשירות. -->
+            <form id="match-form" novalidate>
+              <p class="form-intro">
+                Fields marked with <span aria-hidden="true">*</span> are
+                required.
+              </p>
+
+              <div class="form-grid form-grid--two">
+                <div class="field">
+                  <label for="played-at">Played on <span>*</span></label>
+                  <input
+                    id="played-at"
+                    name="played_at"
+                    type="datetime-local"
+                    required
+                  />
+                </div>
+
+                <div class="field">
+                  <label for="notes">Match notes</label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    rows="1"
+                    maxlength="500"
+                    placeholder="Court, conditions, or a memorable rally..."
+                  ></textarea>
+                  <span class="field-hint" id="notes-counter">0 / 500</span>
+                </div>
+              </div>
+
+              <!-- אוסף שני שחקנים עבור כל אחת מהקבוצות. -->
+              <fieldset class="teams-fieldset">
+                <legend>Players</legend>
+
+                <div class="teams-grid">
+                  <section class="team-card team-card--a" aria-labelledby="team-a-title">
+                    <div class="team-card__heading">
+                      <span class="team-marker" aria-hidden="true">A</span>
+                      <div>
+                        <p id="team-a-title">Team A</p>
+                        <small>First side of the court</small>
+                      </div>
+                    </div>
+
+                    <div class="team-card__fields">
+                      <div class="field">
+                        <label for="team-a-player-1">Player one <span>*</span></label>
+                        <input
+                          id="team-a-player-1"
+                          name="team_a_player_1"
+                          type="text"
+                          maxlength="100"
+                          autocomplete="off"
+                          required
+                        />
+                      </div>
+
+                      <div class="field">
+                        <label for="team-a-player-2">Player two <span>*</span></label>
+                        <input
+                          id="team-a-player-2"
+                          name="team_a_player_2"
+                          type="text"
+                          maxlength="100"
+                          autocomplete="off"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="team-card team-card--b" aria-labelledby="team-b-title">
+                    <div class="team-card__heading">
+                      <span class="team-marker" aria-hidden="true">B</span>
+                      <div>
+                        <p id="team-b-title">Team B</p>
+                        <small>Second side of the court</small>
+                      </div>
+                    </div>
+
+                    <div class="team-card__fields">
+                      <div class="field">
+                        <label for="team-b-player-1">Player one <span>*</span></label>
+                        <input
+                          id="team-b-player-1"
+                          name="team_b_player_1"
+                          type="text"
+                          maxlength="100"
+                          autocomplete="off"
+                          required
+                        />
+                      </div>
+
+                      <div class="field">
+                        <label for="team-b-player-2">Player two <span>*</span></label>
+                        <input
+                          id="team-b-player-2"
+                          name="team_b_player_2"
+                          type="text"
+                          maxlength="100"
+                          autocomplete="off"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </fieldset>
+
+              <!-- אוסף את תוצאת המשחק עבור שתי הקבוצות. -->
+              <fieldset class="score-fieldset">
+                <legend>Result</legend>
+
+                <div class="scores-grid">
+                  <div class="score-field">
+                    <label for="team-a-sets">Team A sets <span>*</span></label>
+                    <input
+                      id="team-a-sets"
+                      name="team_a_sets"
+                      type="number"
+                      min="0"
+                      step="1"
+                      inputmode="numeric"
+                      required
+                    />
+                  </div>
+
+                  <span class="score-divider" aria-hidden="true">:</span>
+
+                  <div class="score-field">
+                    <label for="team-b-sets">Team B sets <span>*</span></label>
+                    <input
+                      id="team-b-sets"
+                      name="team_b_sets"
+                      type="number"
+                      min="0"
+                      step="1"
+                      inputmode="numeric"
+                      required
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <!-- מציג שגיאת אימות או תקלה בצורה נגישה. -->
+              <div
+                id="form-error"
+                class="form-message form-message--error"
+                role="alert"
+                hidden
+              ></div>
+
+              <!-- שולח את המשחק ומציג מידע קצר על פעולת השמירה. -->
+              <div class="form-actions">
+                <button class="primary-button" type="submit">
+                  <span>Save match</span>
+                  <span class="button-arrow" aria-hidden="true">→</span>
+                </button>
+                <p id="form-help" class="form-help">
+                  Results are checked before they are saved.
+                </p>
+              </div>
+            </form>
+          </article>
+
+          <article class="panel panel--history">
+            <header class="panel__header">
+              <div>
+                <p class="eyebrow">Match archive</p>
+                <h2>Recent results</h2>
+              </div>
+
+              <button
+                id="refresh-matches"
+                class="icon-button"
+                type="button"
+                aria-label="Refresh match history"
+              >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M20 11a8 8 0 1 0 2 5.5" />
+                  <path d="M20 4v7h-7" />
+                </svg>
+              </button>
+            </header>
+
+            <!-- מציג סיכום מהיר שנבנה מנתוני המשחקים. -->
+            <dl class="history-stats" aria-label="History summary">
+              <div>
+                <dt>Recorded</dt>
+                <dd id="total-matches">—</dd>
+              </div>
+              <div>
+                <dt>Sorted by</dt>
+                <dd>Match time</dd>
+              </div>
+            </dl>
+
+            <!-- מציג טעינה, מצב ריק או כרטיסי משחקים. -->
+            <div
+              id="matches-list"
+              class="matches-list"
+              aria-live="polite"
+              aria-busy="true"
+            >
+              <div class="loading-state">
+                <span class="loading-orbit" aria-hidden="true"></span>
+                <p>Loading your match history...</p>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <!-- מציג מידע משני על אופי המוצר. -->
+      <footer class="footer">
+        <p>Built for the court. Engineered for reliability.</p>
+        <span aria-hidden="true">✦</span>
+        <p>Padel Match Tracker</p>
+      </footer>
+    </div>
+
+    <!-- משמש תבנית ליצירת כרטיס משחק דינמי. -->
+    <template id="match-card-template">
+      <article class="match-card">
+        <div class="match-card__meta">
+          <div>
+            <p data-match-date></p>
+            <time data-match-time></time>
+          </div>
+          <span class="result-badge" data-match-winner></span>
+        </div>
+
+        <div class="scoreboard">
+          <div class="scoreboard__team" data-team-a-row>
+            <span data-team-a-players></span>
+            <strong data-team-a-score></strong>
+          </div>
+          <div class="scoreboard__team" data-team-b-row>
+            <span data-team-b-players></span>
+            <strong data-team-b-score></strong>
+          </div>
+        </div>
+
+        <p class="match-card__notes" data-match-notes hidden></p>
+      </article>
+    </template>
+
+    <!-- מציג אישור קצר לאחר שמירת משחק. -->
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden>
+      <span class="toast__icon" aria-hidden="true">✓</span>
+      <p id="toast-message"></p>
+    </div>
+  </body>
+</html>
