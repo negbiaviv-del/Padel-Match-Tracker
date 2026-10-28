@@ -1,0 +1,21 @@
+# יוצר הגדרות שאינן סודיות עבור צד השרת.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # משתמש בשם המלא האחיד של ההפצה.
+  name: {{ include "padel-match-tracker.fullname" . }}-backend-config
+  labels:
+    # מוסיף את התוויות המשותפות של היישום.
+    {{- include "padel-match-tracker.labels" . | nindent 4 }}
+data:
+  # מגדיר את שם מסד הנתונים.
+  POSTGRES_DB: {{ .Values.database.name | quote }}
+
+  # מגדיר את שם משתמש מסד הנתונים.
+  POSTGRES_USER: {{ .Values.database.user | quote }}
+
+  # מגדיר את שם השירות הפנימי של מסד הנתונים.
+  POSTGRES_HOST: {{ .Values.database.host | quote }}
+
+  # מגדיר את הפורט הפנימי של מסד הנתונים.
+  POSTGRES_PORT: {{ .Values.database.port | quote }}

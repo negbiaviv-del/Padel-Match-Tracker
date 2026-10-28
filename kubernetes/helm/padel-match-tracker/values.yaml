@@ -1,0 +1,116 @@
+# מגדיר אפשרויות לשינוי שמות המשאבים במקרה הצורך.
+nameOverride: ""
+fullnameOverride: ""
+
+# מגדיר ערכי ברירת מחדל עבור צד השרת.
+backend:
+  # מגדיר כמה עותקים של צד השרת ירוצו.
+  replicaCount: 2
+
+  # מגדיר מאיפה תימשך תמונת המכולה.
+  image:
+    repository: "padel-match-tracker-backend"
+    tag: "local"
+    pullPolicy: IfNotPresent
+
+  # מגדיר את הפורט הפנימי של צד השרת.
+  service:
+    port: 8000
+
+  # מגדיר משאבים מינימליים ומרביים לצד השרת.
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# מגדיר ערכי ברירת מחדל עבור ממשק המשתמש.
+frontend:
+  # מגדיר כמה עותקים של הממשק ירוצו.
+  replicaCount: 2
+
+  # מגדיר מאיפה תימשך תמונת המכולה.
+  image:
+    repository: "padel-match-tracker-frontend"
+    tag: "local"
+    pullPolicy: IfNotPresent
+
+  # מגדיר את הפורט הפנימי של הממשק.
+  service:
+    port: 8080
+
+  # מגדיר משאבים מינימליים ומרביים לממשק.
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+
+# מגדיר ערכי ברירת מחדל עבור מסד הנתונים.
+database:
+  # מגדיר את שם מסד הנתונים.
+  name: "padel_match_tracker"
+
+  # מגדיר את משתמש מסד הנתונים.
+  user: "padel_app"
+
+  # מגדיר את שם השירות הפנימי של מסד הנתונים.
+  host: "postgres"
+
+  # מגדיר את הפורט של מסד הנתונים.
+  port: "5432"
+
+  # משאיר את הסיסמה מחוץ לקובץ שנשמר ב־Git.
+  password: ""
+
+  # משאיר עותק יחיד משום שאין כאן מערך שכפול.
+  replicaCount: 1
+
+  # מגדיר מאיפה תימשך תמונת מסד הנתונים.
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+
+  # מגדיר נפח אחסון קבוע קטן עבור נתוני הפיתוח.
+  persistence:
+    size: 5Gi
+
+  # מגדיר משאבים מינימליים ומרביים למסד הנתונים.
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# מגדיר את נקודת הכניסה אל ממשק המשתמש.
+ingress:
+  # משאיר את יצירת המאזן כבויה כברירת מחדל כדי למנוע עלות בטעות.
+  enabled: false
+
+  # מגדיר את מנהל הכניסה שיטפל במשאב.
+  className: alb
+
+  # מגביל את המאזן לרשת הפרטית של הארגון.
+  scheme: internal
+
+# מגדיר הרחבה אוטומטית עבור רכיבי היישום.
+autoscaling:
+  backend:
+    # משאיר את ההרחבה כבויה עד לסביבת AWS ולבדיקת עומסים.
+    enabled: false
+
+    # מגדיר את מספר הפודים המינימלי.
+    minReplicas: 2
+
+    # מגביל את מספר הפודים המרבי כדי לשלוט בעלויות.
+    maxReplicas: 5
+
+    # מגדיר את אחוז ניצול המעבד הרצוי.
+    targetCPUUtilizationPercentage: 70

@@ -1,0 +1,27 @@
+# יוצר כתובת פנימית קבועה עבור ממשק המשתמש.
+apiVersion: v1
+kind: Service
+metadata:
+  # נותן לשירות הממשק שם אחיד לפי ההפצה.
+  name: {{ include "padel-match-tracker.fullname" . }}-frontend
+  labels:
+    # מוסיף את התוויות המשותפות של היישום.
+    {{- include "padel-match-tracker.labels" . | nindent 4 }}
+    # מזהה את המשאב כרכיב ממשק המשתמש.
+    app.kubernetes.io/component: frontend
+
+spec:
+  # מגביל את הגישה לרשת הפנימית של האשכול.
+  type: ClusterIP
+
+  ports:
+    # מגדיר פורט פנימי עבור הממשק.
+    - name: http
+      protocol: TCP
+      port: {{ .Values.frontend.service.port }}
+      targetPort: http
+
+  selector:
+    # בוחר רק פודים של ממשק המשתמש.
+    {{- include "padel-match-tracker.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend

@@ -1,0 +1,42 @@
+{{- if .Values.ingress.enabled }}
+# יוצר כלל כניסה פנימי אל ממשק המשתמש.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  # נותן לכלל הכניסה שם אחיד לפי ההפצה.
+  name: {{ include "padel-match-tracker.fullname" . }}-frontend
+  labels:
+    # מוסיף את התוויות המשותפות של היישום.
+    {{- include "padel-match-tracker.labels" . | nindent 4 }}
+    # מזהה את המשאב כרכיב הכניסה.
+    app.kubernetes.io/component: ingress
+
+  annotations:
+    # מבקש מאזן עומסים פנימי בלבד.
+    alb.ingress.kubernetes.io/scheme: {{ .Values.ingress.scheme | quote }}
+
+    # מפנה את המאזן ישירות אל כתובות הפודים.
+    alb.ingress.kubernetes.io/target-type: ip
+
+    # מגדיר מאזין HTTP פנימי.
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+
+    # בודק את תקינות הממשק דרך העמוד הראשי.
+    alb.ingress.kubernetes.io/healthcheck-path: /
+
+spec:
+  # בוחר את מנהל הכניסה של AWS.
+  ingressClassName: {{ .Values.ingress.className }}
+
+  rules:
+    - http:
+        paths:
+          # מנתב כל נתיב אל שירות ממשק המשתמש.
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "padel-match-tracker.fullname" . }}-frontend
+                port:
+                  name: http
+{{- end }}

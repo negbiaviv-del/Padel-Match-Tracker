@@ -1,0 +1,61 @@
+# מפעיל משימה חד־פעמית לעדכון מבנה מסד הנתונים.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # נותן למשימת המיגרציה שם אחיד.
+  name: {{ include "padel-match-tracker.fullname" . }}-database-migration
+  labels:
+    # מוסיף את התוויות המשותפות של היישום.
+    {{- include "padel-match-tracker.labels" . | nindent 4 }}
+    # מזהה את המשאב כמשימת מיגרציה.
+    app.kubernetes.io/component: migration
+
+  annotations:
+    # מריץ את המשימה לאחר התקנה ולפני שדרוג.
+    "helm.sh/hook": "post-install,pre-upgrade"
+
+    # מסיר משימה קודמת לפני יצירת משימה חדשה.
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+
+spec:
+  # מגביל את מספר הניסיונות במקרה של כשל זמני.
+  backoffLimit: 6
+
+  # עוצר משימה שנתקעה למשך זמן ארוך מדי.
+  activeDeadlineSeconds: 300
+
+  template:
+    metadata:
+      labels:
+        # מסמן את הפוד כמשימת מיגרציה.
+        {{- include "padel-match-tracker.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+
+    spec:
+      # מונע יצירת פודים חדשים לאחר הצלחת המשימה.
+      restartPolicy: OnFailure
+
+      containers:
+        # משתמש באותה תמונה של צד השרת כדי להריץ Alembic.
+        - name: migration
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+
+          # מחליף את פקודת ההרצה הרגילה בעדכון מיגרציות.
+          command:
+            - alembic
+            - upgrade
+            - head
+
+          envFrom:
+            # טוען הגדרות שאינן סודיות.
+            - configMapRef:
+                name: {{ include "padel-match-tracker.fullname" . }}-backend-config
+
+            # טוען את הסיסמה בצורה סודית.
+            - secretRef:
+                name: {{ include "padel-match-tracker.fullname" . }}-database
+
+          # משתמש במשאבים המוגדרים עבור צד השרת.
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}

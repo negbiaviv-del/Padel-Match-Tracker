@@ -1,0 +1,24 @@
+# יוצר כתובת פנימית קבועה עבור מסד הנתונים.
+apiVersion: v1
+kind: Service
+metadata:
+  # משתמש בשם שהוגדר עבור מסד הנתונים.
+  name: {{ .Values.database.host }}
+  labels:
+    # מוסיף את התוויות המשותפות של היישום.
+    {{- include "padel-match-tracker.labels" . | nindent 4 }}
+    # מזהה את המשאב כרכיב מסד הנתונים.
+    app.kubernetes.io/component: database
+spec:
+  # נותן לפוד מסד הנתונים כתובת פנימית יציבה.
+  clusterIP: None
+  ports:
+    # מגדיר פורט מזוהה עבור PostgreSQL.
+    - name: postgresql
+      protocol: TCP
+      port: {{ .Values.database.port }}
+      targetPort: {{ .Values.database.port }}
+  selector:
+    # בוחר בעתיד רק פודים של מסד הנתונים.
+    {{- include "padel-match-tracker.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: database

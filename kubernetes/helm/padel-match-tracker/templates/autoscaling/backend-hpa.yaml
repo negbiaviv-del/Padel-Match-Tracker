@@ -1,0 +1,35 @@
+{{- if .Values.autoscaling.backend.enabled }}
+# מרחיב את מספר פודי צד השרת לפי עומס המעבד.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  # נותן למדיניות ההרחבה שם אחיד.
+  name: {{ include "padel-match-tracker.fullname" . }}-backend
+  labels:
+    # מוסיף את התוויות המשותפות של היישום.
+    {{- include "padel-match-tracker.labels" . | nindent 4 }}
+    # מזהה את המשאב כרכיב צד השרת.
+    app.kubernetes.io/component: backend
+
+spec:
+  # מגדיר איזה רכיב יורחב אוטומטית.
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "padel-match-tracker.fullname" . }}-backend
+
+  # מגדיר את מספר הפודים המינימלי.
+  minReplicas: {{ .Values.autoscaling.backend.minReplicas }}
+
+  # מגדיר את מספר הפודים המרבי.
+  maxReplicas: {{ .Values.autoscaling.backend.maxReplicas }}
+
+  metrics:
+    # מודד את עומס המעבד של פודי צד השרת.
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.backend.targetCPUUtilizationPercentage }}
+{{- end }}

@@ -1,0 +1,76 @@
+# מפעיל עותקים זהים של צד השרת.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # נותן לרכיב צד השרת שם אחיד.
+  name: {{ include "padel-match-tracker.fullname" . }}-backend
+  labels:
+    # מוסיף את התוויות המשותפות של היישום.
+    {{- include "padel-match-tracker.labels" . | nindent 4 }}
+    # מזהה את המשאב כרכיב צד השרת.
+    app.kubernetes.io/component: backend
+
+spec:
+  # מגדיר עותקים קבועים רק כאשר ההרחבה האוטומטית כבויה.
+  {{- if not .Values.autoscaling.backend.enabled }}
+  replicas: {{ .Values.backend.replicaCount }}
+  {{- end }}
+
+  selector:
+    matchLabels:
+      # בוחר רק פודים של צד השרת.
+      {{- include "padel-match-tracker.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: backend
+
+  template:
+    metadata:
+      labels:
+        # מסמן את הפוד כרכיב צד השרת.
+        {{- include "padel-match-tracker.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: backend
+
+    spec:
+      containers:
+        # מפעיל את מכולת ה־API.
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+
+          ports:
+            # חושף את הפורט הפנימי של ה־API.
+            - name: http
+              containerPort: {{ .Values.backend.service.port }}
+              protocol: TCP
+
+          envFrom:
+            # טוען הגדרות שאינן סודיות.
+            - configMapRef:
+                name: {{ include "padel-match-tracker.fullname" . }}-backend-config
+
+            # טוען את סיסמת מסד הנתונים בצורה סודית.
+            - secretRef:
+                name: {{ include "padel-match-tracker.fullname" . }}-database
+
+          # בודק שהשירות עצמו עדיין פעיל.
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # בודק שהשירות מוכן לעבוד מול מסד הנתונים.
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 6
+
+          # משריין ומגביל משאבים עבור צד השרת.
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}

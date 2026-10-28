@@ -1,0 +1,51 @@
+# יוצר הגדרת שרת עבור ממשק המשתמש באשכול.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  # נותן להגדרת הממשק שם אחיד לפי ההפצה.
+  name: {{ include "padel-match-tracker.fullname" . }}-frontend-config
+  labels:
+    # מוסיף את התוויות המשותפות של היישום.
+    {{- include "padel-match-tracker.labels" . | nindent 4 }}
+    # מזהה את המשאב כרכיב ממשק המשתמש.
+    app.kubernetes.io/component: frontend
+
+data:
+  # שומר את הגדרת שרת הקבצים של הממשק.
+  default.conf: |
+    server {
+      # מאזין לפורט של ממשק המשתמש.
+      listen {{ .Values.frontend.service.port }};
+
+      # מקבל בקשות מכל שם מארח.
+      server_name _;
+
+      # מגדיר את תיקיית הקבצים המוגשים.
+      root /usr/share/nginx/html;
+
+      # מגדיר את עמוד הכניסה הראשי.
+      index index.html;
+
+      # מאפשר לשמור קבצי עיצוב וקוד בעלי שם ייחודי.
+      location ~* \.(css|js)$ {
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+      }
+
+      # מונע שמירה של עמוד הכניסה בדפדפן.
+      location / {
+        add_header Cache-Control "no-store, max-age=0, must-revalidate" always;
+        try_files $uri $uri/ /index.html;
+      }
+
+      # מעביר בקשות נתונים אל שירות צד השרת.
+      location /api/ {
+        add_header Cache-Control "no-store, max-age=0" always;
+        proxy_pass http://{{ include "padel-match-tracker.fullname" . }}-backend:{{ .Values.backend.service.port }};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+    }

@@ -28,3 +28,6 @@ kubeconfig
 # Editor and OS
 .vscode/
 .DS_Store
+
+# קובץ ערכים מקומי שמכיל סיסמה אמיתית לתרשים Helm.
+kubernetes/helm/padel-match-tracker/values-secret.yaml

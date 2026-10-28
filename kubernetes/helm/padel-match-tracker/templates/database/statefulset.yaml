@@ -1,0 +1,119 @@
+# מפעיל מסד נתונים בעל זהות ואחסון קבועים.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  # נותן למסד הנתונים שם יציב.
+  name: {{ .Values.database.host }}
+  labels:
+    # מוסיף את התוויות המשותפות של היישום.
+    {{- include "padel-match-tracker.labels" . | nindent 4 }}
+    # מזהה את המשאב כרכיב מסד הנתונים.
+    app.kubernetes.io/component: database
+
+spec:
+  # מחבר את מערך הפודים לשירות הפנימי הקבוע.
+  serviceName: {{ .Values.database.host }}
+
+  # מפעיל עותק יחיד של מסד הנתונים.
+  replicas: {{ .Values.database.replicaCount }}
+
+  selector:
+    matchLabels:
+      # בוחר רק פודים של מסד הנתונים.
+      {{- include "padel-match-tracker.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+
+  template:
+    metadata:
+      labels:
+        # מסמן את הפוד כרכיב מסד הנתונים.
+        {{- include "padel-match-tracker.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: database
+
+    spec:
+      # מאפשר למשתמש של מסד הנתונים לכתוב לנפח הקבוע.
+      securityContext:
+        fsGroup: 999
+        fsGroupChangePolicy: OnRootMismatch
+
+      containers:
+        # מפעיל את מכולת PostgreSQL.
+        - name: postgres
+          image: "{{ .Values.database.image.repository }}:{{ .Values.database.image.tag }}"
+          imagePullPolicy: {{ .Values.database.image.pullPolicy }}
+
+          ports:
+            # חושף את הפורט של מסד הנתונים בתוך הפוד.
+            - name: postgresql
+              containerPort: {{ .Values.database.port }}
+              protocol: TCP
+
+          env:
+            # טוען את שם מסד הנתונים מההגדרות.
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "padel-match-tracker.fullname" . }}-backend-config
+                  key: POSTGRES_DB
+
+            # טוען את שם המשתמש מההגדרות.
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "padel-match-tracker.fullname" . }}-backend-config
+                  key: POSTGRES_USER
+
+            # טוען את הסיסמה מהמידע הסודי.
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "padel-match-tracker.fullname" . }}-database
+                  key: POSTGRES_PASSWORD
+
+            # מגדיר תיקיית נתונים פנימית בתוך הנפח הקבוע.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+          # בודק שהמסד מוכן לקבל חיבורים חדשים.
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 6
+
+          # בודק שהתהליך של מסד הנתונים עדיין חי.
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # מגביל ומשריין משאבים למסד הנתונים.
+          resources:
+            {{- toYaml .Values.database.resources | nindent 12 }}
+
+          volumeMounts:
+            # מחבר את הנפח הקבוע לתיקיית הנתונים של PostgreSQL.
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+
+  volumeClaimTemplates:
+    # מבקש נפח קבוע נפרד עבור הפוד של מסד הנתונים.
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.database.persistence.size }}

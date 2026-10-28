@@ -1,0 +1,17 @@
+# מגדיר את גרסת מבנה תרשים ההפצה.
+apiVersion: v2
+
+# נותן לתרשים שם קבוע.
+name: padel-match-tracker
+
+# מתאר בקצרה את ייעוד התרשים.
+description: Helm chart for Padel Match Tracker
+
+# מציין שהתרשים מייצג יישום שניתן להתקין.
+type: application
+
+# מגדיר את גרסת התרשים עצמו.
+version: 0.1.0
+
+# מתעד את גרסת היישום שהתרשים מייצג.
+appVersion: "0.1.0"
