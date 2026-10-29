@@ -1,0 +1,13 @@
+# מגדיר את גרסת מבנה הקובץ של Grafana.
+apiVersion: 1
+
+# מגדיר מקור נתונים שיופיע אוטומטית ב־Grafana.
+datasources:
+  # מחבר את Grafana אל Prometheus דרך רשת Docker הפנימית.
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false

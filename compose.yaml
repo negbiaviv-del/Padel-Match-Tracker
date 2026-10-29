@@ -1,4 +1,4 @@
-# מגדיר את שירותי הפיתוח המקומיים של הפרויקט.
+# מגדיר את שירותי הפיתוח והניטור המקומיים של הפרויקט.
 services:
   # מפעיל את מסד הנתונים ושומר את נתוניו בנפח קבוע.
   postgres:
@@ -63,6 +63,57 @@ services:
       backend:
         condition: service_started
 
-# מגדיר נפח קבוע לנתוני מסד הנתונים.
+  # אוסף ושומר מדדים מה־backend.
+  prometheus:
+    image: prom/prometheus:v3.15.0
+
+    # מגביל את שמירת נתוני המדדים המקומיים לשבעה ימים.
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"
+
+    # חושף את ממשק Prometheus רק למכונה המקומית.
+    ports:
+      - "127.0.0.1:9090:9090"
+
+    # טוען את הגדרת האיסוף ושומר היסטוריית מדדים מקומית.
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+    # מוודא שה־backend התחיל לפני Prometheus.
+    depends_on:
+      backend:
+        condition: service_started
+
+  # מציג מדדים ודשבורדים דרך Grafana.
+  grafana:
+    image: grafana/grafana:13.2.4
+
+    # מגדיר משתמש מנהל ומונע פתיחת חשבונות עצמאית.
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+
+    # חושף את ממשק Grafana רק למכונה המקומית.
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    # שומר הגדרות Grafana וטוען מקור נתונים ודשבורדים מקבצים.
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/dashboards:/var/lib/grafana/dashboards:ro
+
+    # מפעיל את Grafana לאחר ש־Prometheus התחיל.
+    depends_on:
+      prometheus:
+        condition: service_started
+
+# מגדיר נפחים קבועים לנתונים שצריכים לשרוד החלפת מכולות.
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:

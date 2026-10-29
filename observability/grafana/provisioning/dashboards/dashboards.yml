@@ -1,0 +1,33 @@
+# מגדיר את גרסת מבנה קובץ ההגדרות של Grafana.
+apiVersion: 1
+
+# מגדיר ספק שטוען דשבורדים מקבצים בפרויקט.
+providers:
+  # נותן לספק הדשבורדים שם קבוע.
+  - name: padel-match-tracker
+
+    # מגדיר את ארגון ברירת המחדל של Grafana.
+    orgId: 1
+
+    # יוצר תיקייה מסודרת עבור דשבורדי הפרויקט.
+    folder: Padel Match Tracker
+    folderUid: padel-match-tracker
+
+    # טוען דשבורדים מקבצים במערכת הקבצים.
+    type: file
+
+    # מסיר דשבורד גם אם הוא הוסר מקובץ המקור.
+    disableDeletion: false
+
+    # בודק עדכונים בקבצים כל שלושים שניות.
+    updateIntervalSeconds: 30
+
+    # מונע שינוי ידני שייצור פער מול הקבצים ב־Git.
+    allowUiUpdates: false
+
+    options:
+      # מגדיר את הנתיב בתוך מכולת Grafana שבה נמצאים קובצי הדשבורדים.
+      path: /var/lib/grafana/dashboards
+
+      # משאיר את כל הדשבורדים בתיקייה שהוגדרה למעלה.
+      foldersFromFilesStructure: false

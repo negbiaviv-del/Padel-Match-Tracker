@@ -1,0 +1,15 @@
+# מגדיר את תדירות איסוף המדדים.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# מגדיר מאילו שירותים Prometheus יאסוף מדדים.
+scrape_configs:
+  # אוסף את מדדי ה־API של אפליקציית הפאדל.
+  - job_name: "padel-backend"
+    metrics_path: "/metrics/"
+
+    # משתמש בשם השירות הפנימי של Docker וברכיב ה־backend.
+    static_configs:
+      - targets:
+          - "backend:8000"
