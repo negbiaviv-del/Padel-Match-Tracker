@@ -1,6 +1,7 @@
 # מייבא את לקוח הבדיקות של השירות.
 from fastapi.testclient import TestClient  # לקוח פנימי לבדיקות השירות.
 
+
 # מחזיר מידע תקין שאפשר לשלוח ליצירת משחק.
 def valid_match_payload() -> dict[str, object]:
     return {
@@ -19,6 +20,7 @@ def test_liveness_returns_ok(client: TestClient) -> None:
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
 
 # בודק שהשירות מוכן לעבוד עם מסד הנתונים.
 def test_readiness_returns_ok(client: TestClient) -> None:
@@ -89,3 +91,31 @@ def test_create_match_rejects_duplicate_player(client: TestClient) -> None:
             "message": "a player cannot appear more than once",
         }
     ]
+
+
+# בודק שמחיקת משחק מסירה אותו ממסד הנתונים.
+def test_delete_match_removes_match(client: TestClient) -> None:
+    create_response = client.post(
+        "/api/v1/matches",
+        json=valid_match_payload(),
+    )
+    match_id = create_response.json()["id"]
+
+    response = client.delete(f"/api/v1/matches/{match_id}")
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+    matches_response = client.get("/api/v1/matches")
+    assert matches_response.status_code == 200
+    assert matches_response.json() == []
+
+
+# בודק שמחיקה של משחק שאינו קיים מחזירה תשובה ברורה.
+def test_delete_missing_match_returns_not_found(client: TestClient) -> None:
+    missing_match_id = "00000000-0000-0000-0000-000000000000"
+
+    response = client.delete(f"/api/v1/matches/{missing_match_id}")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "match not found"}

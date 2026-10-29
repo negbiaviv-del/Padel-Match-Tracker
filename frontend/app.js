@@ -12,7 +12,7 @@ window.addEventListener("pageshow", (event) => {
   window.scrollTo(0, 0);
 });
 
-// מגדיר את הנתיב היחסי לקריאה ולשמירה של משחקים.
+// מגדיר את הנתיב היחסי לקריאה, שמירה ומחיקה של משחקים.
 const matchesApiPath = "/api/v1/matches";
 
 // מאתר את רכיבי העמוד שדורשים עדכון.
@@ -35,9 +35,18 @@ const elements = {
   saveButtonText: document.querySelector(".primary-button span"),
   toast: document.getElementById("toast"),
   toastMessage: document.getElementById("toast-message"),
+  deleteDialog: document.getElementById("delete-dialog"),
+  deleteDialogMessage: document.getElementById("delete-dialog-message"),
+  deleteDialogError: document.getElementById("delete-dialog-error"),
+  cancelDeleteButton: document.getElementById("cancel-delete"),
+  confirmDeleteButton: document.getElementById("confirm-delete"),
 };
 
+// שומר מזהה של הודעת ההצלחה הזמנית.
 let toastTimer;
+
+// שומר זמנית את מזהה המשחק שממתין לאישור מחיקה.
+let pendingDeletionMatchId = null;
 
 // מעדכן את מצב החיבור שמוצג למשתמש.
 function setConnectionStatus(message, isConnected) {
@@ -108,12 +117,13 @@ function formatLatestResult(match) {
   return `${winningTeam} won ${match.team_a_sets}:${match.team_b_sets}`;
 }
 
-// יוצר כרטיס משחק וממלא אותו בנתונים.
+// יוצר כרטיס משחק, ממלא אותו בנתונים ומכין פעולת מחיקה.
 function createMatchCard(match) {
   const cardFragment = elements.matchCardTemplate.content.cloneNode(true);
   const notes = cardFragment.querySelector("[data-match-notes]");
   const teamARow = cardFragment.querySelector("[data-team-a-row]");
   const teamBRow = cardFragment.querySelector("[data-team-b-row]");
+  const deleteButton = cardFragment.querySelector("[data-delete-match]");
 
   cardFragment.querySelector("[data-match-date]").textContent = formatMatchDate(
     match.played_at,
@@ -141,6 +151,18 @@ function createMatchCard(match) {
   if (match.notes) {
     notes.textContent = match.notes;
     notes.hidden = false;
+  }
+
+  if (deleteButton instanceof HTMLButtonElement) {
+    const matchDescription =
+      `${match.team_a.join(" & ")} versus ${match.team_b.join(" & ")}`;
+
+    deleteButton.dataset.matchId = match.id;
+    deleteButton.dataset.matchDescription = matchDescription;
+    deleteButton.setAttribute(
+      "aria-label",
+      `Delete match: ${matchDescription}`,
+    );
   }
 
   return cardFragment;
@@ -284,7 +306,11 @@ function getErrorMessage(payload) {
       .join(" ");
   }
 
-  return payload?.error?.message || "We could not save the match. Please try again.";
+  return (
+    payload?.error?.message ||
+    payload?.detail ||
+    "We could not complete the request. Please try again."
+  );
 }
 
 // קורא תשובה בפורמט נתונים בלי להפיל את הממשק בתשובה ריקה.
@@ -354,6 +380,101 @@ async function submitMatch() {
   }
 }
 
+// מציג שגיאה בתוך חלון המחיקה.
+function showDeleteError(message) {
+  elements.deleteDialogError.textContent = message;
+  elements.deleteDialogError.hidden = false;
+}
+
+// מסתיר שגיאה קודמת מתוך חלון המחיקה.
+function clearDeleteError() {
+  elements.deleteDialogError.textContent = "";
+  elements.deleteDialogError.hidden = true;
+}
+
+// משנה את מצב כפתורי המחיקה בזמן שהבקשה נשלחת.
+function setDeleteState(isDeleting) {
+  elements.cancelDeleteButton.disabled = isDeleting;
+  elements.confirmDeleteButton.disabled = isDeleting;
+  elements.confirmDeleteButton.textContent = isDeleting
+    ? "Deleting..."
+    : "Delete match";
+}
+
+// פותח חלון אישור עבור המשחק שנבחר.
+function handleMatchListClick(event) {
+  const target = event.target;
+
+  if (!(target instanceof Element)) {
+    return;
+  }
+
+  const deleteButton = target.closest("[data-delete-match]");
+
+  if (!(deleteButton instanceof HTMLButtonElement)) {
+    return;
+  }
+
+  const matchId = deleteButton.dataset.matchId;
+
+  if (!matchId) {
+    return;
+  }
+
+  const matchDescription =
+    deleteButton.dataset.matchDescription || "this match";
+
+  pendingDeletionMatchId = matchId;
+  clearDeleteError();
+
+  elements.deleteDialogMessage.textContent =
+    `Delete ${matchDescription}? This action cannot be undone.`;
+
+  elements.deleteDialog.showModal();
+}
+
+// מוחק את המשחק לאחר אישור מפורש של המשתמש.
+async function deletePendingMatch() {
+  if (!pendingDeletionMatchId) {
+    return;
+  }
+
+  const matchId = pendingDeletionMatchId;
+
+  clearDeleteError();
+  setDeleteState(true);
+
+  try {
+    const response = await fetch(`${matchesApiPath}/${matchId}`, {
+      method: "DELETE",
+    });
+
+    const responsePayload = await readJsonResponse(response);
+
+    if (!response.ok) {
+      throw new Error(getErrorMessage(responsePayload));
+    }
+
+    elements.deleteDialog.close();
+    showToast("Match deleted successfully.");
+    await loadMatches();
+  } catch (error) {
+    console.error(error);
+    showDeleteError(
+      error.message || "We could not delete the match. Please try again.",
+    );
+  } finally {
+    setDeleteState(false);
+  }
+}
+
+// מנקה את מצב המחיקה לאחר סגירת חלון האישור.
+function resetDeleteDialog() {
+  pendingDeletionMatchId = null;
+  clearDeleteError();
+  setDeleteState(false);
+}
+
 // תופס את שליחת הטופס לפני פעולת הניווט הרגילה של הדפדפן.
 function handleMatchFormSubmit(event) {
   const submittedForm = event.target;
@@ -375,6 +496,15 @@ elements.refreshButton.addEventListener("click", loadMatches);
 
 // מחבר את מונה ההערות לשינויי המשתמש.
 elements.notes.addEventListener("input", updateNotesCounter);
+
+// מחבר פעולת לחיצה על כפתורי המחיקה בכרטיסי המשחקים.
+elements.matchesList.addEventListener("click", handleMatchListClick);
+
+// מחבר את אישור המחיקה לשליחת בקשת DELETE.
+elements.confirmDeleteButton.addEventListener("click", deletePendingMatch);
+
+// מנקה מידע זמני כאשר חלון המחיקה נסגר.
+elements.deleteDialog.addEventListener("close", resetDeleteDialog);
 
 // תופס את שליחת הטופס לפני שהיא מגיעה לפעולה הרגילה של הדפדפן.
 document.addEventListener("submit", handleMatchFormSubmit, true);

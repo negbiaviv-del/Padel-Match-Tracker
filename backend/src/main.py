@@ -1,3 +1,6 @@
+# מייבא מזהה ייחודי של משחק.
+from uuid import UUID
+
 # מייבא את הכלים הדרושים להפעלת השירות, למסד הנתונים ולמבני המידע.
 from fastapi import Depends, FastAPI, HTTPException, Request, status  # כלי שירות, בקשה ושגיאות.
 from fastapi.exceptions import RequestValidationError  # שגיאת אימות בקשה.
@@ -152,3 +155,43 @@ def list_matches(
 
     # ממיר את רשומות מסד הנתונים לתשובה בטוחה עבור הלקוח.
     return [to_match_read(match) for match in matches]
+
+
+# מוחק משחק קיים לפי המזהה הייחודי שלו.
+@app.delete(
+    "/api/v1/matches/{match_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_match(
+    match_id: UUID,
+    db: Session = Depends(get_db),
+) -> None:
+    # מאתר את המשחק המבוקש לפי המפתח הראשי שלו.
+    try:
+        match = db.get(Match, match_id)
+    except SQLAlchemyError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="unable to find match",
+        ) from error
+
+    # מחזיר תשובה ברורה כאשר אין משחק תואם.
+    if match is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="match not found",
+        )
+
+    # מוחק את המשחק ושומר את השינוי במסד הנתונים.
+    try:
+        db.delete(match)
+        db.commit()
+    except SQLAlchemyError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="unable to delete match",
+        ) from error
+
+    return None

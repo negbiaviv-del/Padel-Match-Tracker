@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <link rel="icon" href="./favicon.__BUILD_HASH__.ico" sizes="any" />
     <!-- מגדיר קידוד, התאמה לנייד ומידע בסיסי על העמוד. -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -38,6 +39,7 @@
               <circle cx="23.8" cy="8.2" r="2.3" />
             </svg>
           </span>
+
           <span>
             <strong>Padel Match Tracker</strong>
             <small>Play. Record. Improve.</small>
@@ -61,6 +63,7 @@
           <div class="hero__content">
             <p class="eyebrow">Your court, your story</p>
             <h1 id="page-title">Every match deserves a record.</h1>
+
             <p class="hero__description">
               Capture results, follow your game history, and keep every rally
               within reach.
@@ -77,6 +80,7 @@
               <dt>Total matches</dt>
               <dd id="hero-match-count">—</dd>
             </div>
+
             <div>
               <dt>Latest result</dt>
               <dd id="hero-latest-result">—</dd>
@@ -92,6 +96,7 @@
                 <p class="eyebrow">New result</p>
                 <h2>Record a match</h2>
               </div>
+
               <span class="panel__step">01</span>
             </header>
 
@@ -105,6 +110,7 @@
               <div class="form-grid form-grid--two">
                 <div class="field">
                   <label for="played-at">Played on <span>*</span></label>
+
                   <input
                     id="played-at"
                     name="played_at"
@@ -115,6 +121,7 @@
 
                 <div class="field">
                   <label for="notes">Match notes</label>
+
                   <textarea
                     id="notes"
                     name="notes"
@@ -122,6 +129,7 @@
                     maxlength="500"
                     placeholder="Court, conditions, or a memorable rally..."
                   ></textarea>
+
                   <span class="field-hint" id="notes-counter">0 / 500</span>
                 </div>
               </div>
@@ -131,9 +139,13 @@
                 <legend>Players</legend>
 
                 <div class="teams-grid">
-                  <section class="team-card team-card--a" aria-labelledby="team-a-title">
+                  <section
+                    class="team-card team-card--a"
+                    aria-labelledby="team-a-title"
+                  >
                     <div class="team-card__heading">
                       <span class="team-marker" aria-hidden="true">A</span>
+
                       <div>
                         <p id="team-a-title">Team A</p>
                         <small>First side of the court</small>
@@ -142,7 +154,10 @@
 
                     <div class="team-card__fields">
                       <div class="field">
-                        <label for="team-a-player-1">Player one <span>*</span></label>
+                        <label for="team-a-player-1"
+                          >Player one <span>*</span></label
+                        >
+
                         <input
                           id="team-a-player-1"
                           name="team_a_player_1"
@@ -154,7 +169,10 @@
                       </div>
 
                       <div class="field">
-                        <label for="team-a-player-2">Player two <span>*</span></label>
+                        <label for="team-a-player-2"
+                          >Player two <span>*</span></label
+                        >
+
                         <input
                           id="team-a-player-2"
                           name="team_a_player_2"
@@ -167,9 +185,13 @@
                     </div>
                   </section>
 
-                  <section class="team-card team-card--b" aria-labelledby="team-b-title">
+                  <section
+                    class="team-card team-card--b"
+                    aria-labelledby="team-b-title"
+                  >
                     <div class="team-card__heading">
                       <span class="team-marker" aria-hidden="true">B</span>
+
                       <div>
                         <p id="team-b-title">Team B</p>
                         <small>Second side of the court</small>
@@ -178,7 +200,10 @@
 
                     <div class="team-card__fields">
                       <div class="field">
-                        <label for="team-b-player-1">Player one <span>*</span></label>
+                        <label for="team-b-player-1"
+                          >Player one <span>*</span></label
+                        >
+
                         <input
                           id="team-b-player-1"
                           name="team_b_player_1"
@@ -190,7 +215,10 @@
                       </div>
 
                       <div class="field">
-                        <label for="team-b-player-2">Player two <span>*</span></label>
+                        <label for="team-b-player-2"
+                          >Player two <span>*</span></label
+                        >
+
                         <input
                           id="team-b-player-2"
                           name="team_b_player_2"
@@ -212,6 +240,7 @@
                 <div class="scores-grid">
                   <div class="score-field">
                     <label for="team-a-sets">Team A sets <span>*</span></label>
+
                     <input
                       id="team-a-sets"
                       name="team_a_sets"
@@ -227,6 +256,7 @@
 
                   <div class="score-field">
                     <label for="team-b-sets">Team B sets <span>*</span></label>
+
                     <input
                       id="team-b-sets"
                       name="team_b_sets"
@@ -254,6 +284,7 @@
                   <span>Save match</span>
                   <span class="button-arrow" aria-hidden="true">→</span>
                 </button>
+
                 <p id="form-help" class="form-help">
                   Results are checked before they are saved.
                 </p>
@@ -287,6 +318,7 @@
                 <dt>Recorded</dt>
                 <dd id="total-matches">—</dd>
               </div>
+
               <div>
                 <dt>Sorted by</dt>
                 <dd>Match time</dd>
@@ -325,6 +357,7 @@
             <p data-match-date></p>
             <time data-match-time></time>
           </div>
+
           <span class="result-badge" data-match-winner></span>
         </div>
 
@@ -333,17 +366,59 @@
             <span data-team-a-players></span>
             <strong data-team-a-score></strong>
           </div>
+
           <div class="scoreboard__team" data-team-b-row>
             <span data-team-b-players></span>
             <strong data-team-b-score></strong>
           </div>
         </div>
 
+        <!-- מציג הערה ופעולת מחיקה עבור המשחק. -->
         <p class="match-card__notes" data-match-notes hidden></p>
+
+        <div class="match-card__actions">
+          <button class="match-card__delete" type="button" data-delete-match>
+            Delete match
+          </button>
+        </div>
       </article>
     </template>
 
-    <!-- מציג אישור קצר לאחר שמירת משחק. -->
+    <!-- מבקש אישור מפורש לפני מחיקה בלתי הפיכה של משחק. -->
+    <dialog
+      id="delete-dialog"
+      class="delete-dialog"
+      aria-labelledby="delete-dialog-title"
+      aria-describedby="delete-dialog-message"
+    >
+      <form method="dialog" class="delete-dialog__content">
+        <p class="eyebrow">Delete result</p>
+        <h2 id="delete-dialog-title">Delete this match?</h2>
+
+        <p id="delete-dialog-message" class="delete-dialog__message">
+          This action permanently removes the selected match.
+        </p>
+
+        <p
+          id="delete-dialog-error"
+          class="delete-dialog__error"
+          role="alert"
+          hidden
+        ></p>
+
+        <div class="delete-dialog__actions">
+          <button id="cancel-delete" class="secondary-button" type="submit">
+            Keep match
+          </button>
+
+          <button id="confirm-delete" class="danger-button" type="button">
+            Delete match
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- מציג אישור קצר לאחר שמירת או מחיקת משחק. -->
     <div id="toast" class="toast" role="status" aria-live="polite" hidden>
       <span class="toast__icon" aria-hidden="true">✓</span>
       <p id="toast-message"></p>
