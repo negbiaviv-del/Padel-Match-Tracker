@@ -10,6 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError  # שגיאת מסד נתונים.
 from sqlalchemy.orm import Session  # פעולה מול מסד הנתונים.
 
 from .database import check_database_connection, get_db  # בדיקת מסד וחיבור לבקשה.
+from .metrics import metrics_app, observe_request  # נתיב מדדים ומדידת בקשות.
 from .models import Match  # מודל טבלת המשחקים.
 from .schemas import MatchCreate, MatchRead  # מבני קלט ופלט לשירות.
 
@@ -19,6 +20,15 @@ app = FastAPI(
     title="Padel Match Tracker API",
     version="0.1.0",
 )
+
+# חושף נתיב ייעודי שמחזיר מדדים בפורמט של Prometheus.
+app.mount("/metrics", metrics_app)
+
+
+# מודד בקשות נכנסות בלי לשנות את התשובה שהלקוח מקבל.
+@app.middleware("http")
+async def collect_prometheus_metrics(request: Request, call_next):
+    return await observe_request(request, call_next)
 
 
 # מחזיר מבנה שגיאה קבוע וברור כאשר נתוני בקשה אינם תקינים.
