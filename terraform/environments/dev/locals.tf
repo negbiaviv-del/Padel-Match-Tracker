@@ -1,6 +1,7 @@
-# מגדיר ערכים פנימיים שחוזרים בכל משאבי סביבת הפיתוח.
+# יוצר שמות ותגיות אחידים לכל משאבי סביבת הפיתוח.
 locals {
-  name_prefix = "${var.project_name}-${var.environment}"
+  name_prefix  = "${var.project_name}-${var.environment}"
+  cluster_name = "${local.name_prefix}-eks"
 
   common_tags = {
     Project     = var.project_name
