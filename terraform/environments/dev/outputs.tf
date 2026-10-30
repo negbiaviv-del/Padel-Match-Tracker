@@ -1,23 +1,29 @@
-# מציג את שם אשכול ה־EKS המתוכנן.
+# מחזיר את שם אשכול EKS המתוכנן.
 output "cluster_name" {
-  description = "Planned name of the EKS cluster."
+  description = "Name planned for the EKS cluster."
   value       = local.cluster_name
 }
 
-# מציג את מזהה רשת ה־VPC שנוצרה עבור הסביבה.
+# מחזיר את מזהה הרשת הראשית.
 output "vpc_id" {
-  description = "ID of the development VPC."
+  description = "ID of the VPC created for the environment."
   value       = module.networking.vpc_id
 }
 
-# מציג את מזהי הרשתות הפרטיות שבהן ירוצו עומסי העבודה.
+# מחזיר את מזהי הסאבנטים הפרטיים של עומסי העבודה.
 output "private_subnet_ids" {
-  description = "IDs of private workload subnets."
+  description = "Private subnet IDs for Kubernetes workloads."
   value       = module.networking.private_subnet_ids
 }
 
-# מציג את מזהה שער ה־NAT היחיד של סביבת הפיתוח.
+# מחזיר את מזהה שער ה־NAT לצורכי אבחון ועלויות.
 output "nat_gateway_id" {
-  description = "ID of the development NAT Gateway."
+  description = "ID of the NAT Gateway used for private-subnet egress."
   value       = module.networking.nat_gateway_id
+}
+
+# מחזיר את כתובת תפקיד ה־IAM שנחבר לאשכול EKS בהמשך.
+output "eks_cluster_role_arn" {
+  description = "ARN of the IAM role used by the EKS control plane."
+  value       = module.eks_iam.eks_cluster_role_arn
 }
