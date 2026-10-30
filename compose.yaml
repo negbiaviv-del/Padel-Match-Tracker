@@ -77,9 +77,10 @@ services:
     ports:
       - "127.0.0.1:9090:9090"
 
-    # טוען את הגדרת האיסוף ושומר היסטוריית מדדים מקומית.
+    # טוען הגדרות, כללי התרעה ושומר נתוני מדדים מקומיים.
     volumes:
       - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/alerts/backend-alerts.yml:/etc/prometheus/backend-alerts.yml:ro
       - prometheus_data:/prometheus
 
     # מוודא שה־backend התחיל לפני Prometheus.

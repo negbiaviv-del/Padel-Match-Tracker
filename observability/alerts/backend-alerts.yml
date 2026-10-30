@@ -1,0 +1,20 @@
+# מגדיר קבוצת כללי התרעה עבור שירות הפאדל.
+groups:
+  - name: padel-backend.rules
+    rules:
+      # מתריע כאשר Prometheus אינו מצליח לאסוף מדדים מצד השרת.
+      - alert: PadelBackendDown
+        expr: up{job="padel-backend"} == 0
+        for: 2m
+
+        # מוסיף תוויות שמסייעות לסיווג ההתרעה בעתיד.
+        labels:
+          severity: critical
+          service: backend
+
+        # מספק תיאור קריא למי שמקבל את ההתרעה.
+        annotations:
+          summary: "Padel backend is unavailable"
+          description: >-
+            Prometheus could not scrape {{ $labels.instance }}
+            for more than two minutes.
