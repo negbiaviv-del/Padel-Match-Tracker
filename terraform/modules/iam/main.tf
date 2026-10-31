@@ -1,4 +1,4 @@
-# יוצר מסמך אמון שמאפשר רק לשירות EKS להשתמש בתפקיד.
+# יוצר מסמך אמון שמאפשר רק לשירות EKS להשתמש בתפקיד שכבת הניהול.
 data "aws_iam_policy_document" "eks_cluster_assume_role" {
   statement {
     effect = "Allow"
@@ -68,4 +68,10 @@ resource "aws_iam_role_policy_attachment" "eks_node_worker" {
 resource "aws_iam_role_policy_attachment" "eks_node_ecr_pull" {
   role       = aws_iam_role.eks_node.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+}
+
+# מאפשר למכונות העובדים לנהל רשת וכתובות IP עבור פודי Kubernetes.
+resource "aws_iam_role_policy_attachment" "eks_node_cni" {
+  role       = aws_iam_role.eks_node.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
