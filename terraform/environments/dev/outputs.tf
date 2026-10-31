@@ -1,7 +1,7 @@
 # מחזיר את שם אשכול EKS המתוכנן.
 output "cluster_name" {
-  description = "Name planned for the EKS cluster."
-  value       = local.cluster_name
+  description = "Name of the EKS cluster."
+  value       = module.eks.cluster_name
 }
 
 # מחזיר את מזהה הרשת הראשית.
@@ -22,8 +22,32 @@ output "nat_gateway_id" {
   value       = module.networking.nat_gateway_id
 }
 
-# מחזיר את כתובת תפקיד ה־IAM שנחבר לאשכול EKS בהמשך.
+# מחזיר את כתובת תפקיד ה־IAM של שכבת הניהול.
 output "eks_cluster_role_arn" {
   description = "ARN of the IAM role used by the EKS control plane."
   value       = module.eks_iam.eks_cluster_role_arn
+}
+
+# מחזיר את כתובת ה־ARN של האשכול.
+output "eks_cluster_arn" {
+  description = "ARN of the EKS cluster."
+  value       = module.eks.cluster_arn
+}
+
+# מחזיר את כתובת ה־API של האשכול.
+output "eks_cluster_endpoint" {
+  description = "API endpoint of the EKS cluster."
+  value       = module.eks.cluster_endpoint
+}
+
+# מחזיר את כתובת ספק הזהויות של האשכול.
+output "eks_cluster_oidc_issuer_url" {
+  description = "OIDC issuer URL of the EKS cluster."
+  value       = module.eks.cluster_oidc_issuer_url
+}
+
+# מחזיר את שם קבוצת יומני הניהול.
+output "eks_control_plane_log_group_name" {
+  description = "CloudWatch log group used by the EKS control plane."
+  value       = module.eks.control_plane_log_group_name
 }
