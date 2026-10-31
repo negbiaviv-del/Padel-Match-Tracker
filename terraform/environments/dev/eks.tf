@@ -8,6 +8,9 @@ module "eks" {
   # מחבר את תפקיד הניהול שנוצר במודול ההרשאות.
   cluster_role_arn = module.eks_iam.eks_cluster_role_arn
 
+  # מחבר את תפקיד מכונות העובדים שנוצר במודול ההרשאות.
+  node_role_arn = module.eks_iam.eks_node_role_arn
+
   # מגדיר את זהות מנהל האשכול.
   cluster_admin_principal_arn = var.cluster_admin_principal_arn
 
@@ -28,6 +31,14 @@ module "eks" {
 
   # שומר את יומני הניהול לתקופה מוגבלת וחסכונית.
   log_retention_in_days = var.eks_log_retention_in_days
+
+  # מגדיר תצורת פיתוח חסכונית עבור מכונות העובדים.
+  node_instance_types = var.eks_node_instance_types
+  node_capacity_type  = var.eks_node_capacity_type
+  node_min_size       = var.eks_node_min_size
+  node_desired_size   = var.eks_node_desired_size
+  node_max_size       = var.eks_node_max_size
+  node_disk_size      = var.eks_node_disk_size
 
   # מעביר תגיות משותפות לכל משאבי האשכול.
   tags = local.common_tags

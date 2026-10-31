@@ -10,15 +10,21 @@ variable "cluster_role_arn" {
   type        = string
 }
 
+# מגדיר את כתובת תפקיד ההרשאות של מכונות העובדים.
+variable "node_role_arn" {
+  description = "ARN of the IAM role assumed by EKS worker nodes."
+  type        = string
+}
+
 # מגדיר את זהות ה־IAM שתנהל את האשכול.
 variable "cluster_admin_principal_arn" {
   description = "IAM principal ARN granted cluster administrator access."
   type        = string
 }
 
-# מגדיר את הסאבנטים הפרטיים שבהם האשכול יעבוד.
+# מגדיר את הסאבנטים הפרטיים שבהם האשכול ומכונות העובדים יעבדו.
 variable "subnet_ids" {
-  description = "Private subnet IDs used by the EKS cluster."
+  description = "Private subnet IDs used by the EKS cluster and worker nodes."
   type        = list(string)
 
   validation {
@@ -67,6 +73,72 @@ variable "enabled_cluster_log_types" {
 variable "log_retention_in_days" {
   description = "Number of days to retain EKS control-plane logs."
   type        = number
+}
+
+# מגדיר את סוגי מכונות EC2 שמותר לקבוצת העובדים להשתמש בהם.
+variable "node_instance_types" {
+  description = "EC2 instance types allowed for the managed node group."
+  type        = list(string)
+
+  validation {
+    condition     = length(var.node_instance_types) > 0
+    error_message = "At least one worker node instance type is required."
+  }
+}
+
+# מגדיר אם העובדים יופעלו כמכונות On-Demand או Spot.
+variable "node_capacity_type" {
+  description = "Capacity type used by the managed node group."
+  type        = string
+
+  validation {
+    condition     = contains(["ON_DEMAND", "SPOT"], var.node_capacity_type)
+    error_message = "Node capacity type must be ON_DEMAND or SPOT."
+  }
+}
+
+# מגדיר את מספר מכונות העובדים המינימלי.
+variable "node_min_size" {
+  description = "Minimum number of worker nodes."
+  type        = number
+
+  validation {
+    condition     = var.node_min_size >= 1
+    error_message = "At least one worker node is required."
+  }
+}
+
+# מגדיר את מספר מכונות העובדים שייווצרו בתחילת ההקמה.
+variable "node_desired_size" {
+  description = "Desired number of worker nodes."
+  type        = number
+
+  validation {
+    condition     = var.node_desired_size >= 1
+    error_message = "Desired worker node count must be at least one."
+  }
+}
+
+# מגדיר את המספר המרבי של מכונות עובדים בעת הרחבה עתידית.
+variable "node_max_size" {
+  description = "Maximum number of worker nodes."
+  type        = number
+
+  validation {
+    condition     = var.node_max_size >= 1
+    error_message = "Maximum worker node count must be at least one."
+  }
+}
+
+# מגדיר את גודל הדיסק המקומי של כל מכונת עובד.
+variable "node_disk_size" {
+  description = "Root disk size in GiB for each worker node."
+  type        = number
+
+  validation {
+    condition     = var.node_disk_size >= 20
+    error_message = "Worker node disk size must be at least 20 GiB."
+  }
 }
 
 # מעביר תגיות משותפות לכל משאבי האשכול.

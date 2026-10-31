@@ -52,6 +52,66 @@ resource "aws_eks_cluster" "this" {
   depends_on = [aws_cloudwatch_log_group.cluster]
 }
 
+# יוצר קבוצת מכונות עובדים מנוהלת שעליה ירוצו הפודים של היישום.
+resource "aws_eks_node_group" "workers" {
+  cluster_name    = aws_eks_cluster.this.name
+  node_group_name = "${var.cluster_name}-workers"
+  node_role_arn   = var.node_role_arn
+  subnet_ids      = var.subnet_ids
+
+  # בוחר תמונת מערכת הפעלה עדכנית עבור מכונות EKS.
+  ami_type = "AL2023_x86_64_STANDARD"
+
+  # משתמש במכונות On-Demand יציבות עבור סביבת הפיתוח.
+  capacity_type = var.node_capacity_type
+
+  # מגדיר את סוגי מכונות EC2 שמותר לקבוצת העובדים ליצור.
+  instance_types = var.node_instance_types
+
+  # מקצה נפח דיסק מקומי למערכת ההפעלה, לקונטיינרים וליומנים.
+  disk_size = var.node_disk_size
+
+  # מגדיר כמה מכונות ירוצו וכמה מותר להרחיב בעתיד.
+  scaling_config {
+    min_size     = var.node_min_size
+    desired_size = var.node_desired_size
+    max_size     = var.node_max_size
+  }
+
+  # מאפשר לעדכן בכל פעם לכל היותר מכונת עובד אחת.
+  update_config {
+    max_unavailable = 1
+  }
+
+  # מסמן את המכונות כיעד כללי לעומסי העבודה של היישום.
+  labels = {
+    workload = "general"
+  }
+
+  tags = merge(
+    var.tags,
+    {
+      Name      = "${var.cluster_name}-workers"
+      Component = "eks-worker-node"
+    },
+  )
+
+  # מוודא שסדר גדלי הקבוצה הגיוני לפני יצירה ב-AWS.
+  lifecycle {
+    precondition {
+      condition = (
+        var.node_min_size <= var.node_desired_size &&
+        var.node_desired_size <= var.node_max_size
+      )
+
+      error_message = "Node group sizing must satisfy min_size <= desired_size <= max_size."
+    }
+  }
+
+  # ממתין שהאשכול יסתיים לפני יצירת מכונות העובדים.
+  depends_on = [aws_eks_cluster.this]
+}
+
 # יוצר רשומת גישה מפורשת למנהל האשכול.
 resource "aws_eks_access_entry" "cluster_admin" {
   cluster_name  = aws_eks_cluster.this.name

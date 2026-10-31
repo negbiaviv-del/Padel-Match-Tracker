@@ -33,6 +33,48 @@ variable "eks_log_retention_in_days" {
   default     = 14
 }
 
+# מגדיר את סוג מכונות העובדים של סביבת הפיתוח.
+variable "eks_node_instance_types" {
+  description = "EC2 instance types used by development worker nodes."
+  type        = list(string)
+  default     = ["t3.small"]
+}
+
+# מגדיר שימוש במכונות יציבות במקום Spot לסביבת הפיתוח.
+variable "eks_node_capacity_type" {
+  description = "Capacity type used by development worker nodes."
+  type        = string
+  default     = "ON_DEMAND"
+}
+
+# מגדיר שמכונת עובד אחת תישאר זמינה בסביבת הפיתוח.
+variable "eks_node_min_size" {
+  description = "Minimum number of development worker nodes."
+  type        = number
+  default     = 1
+}
+
+# מגדיר שמכונת עובד אחת תיווצר בעת ההקמה הראשונית.
+variable "eks_node_desired_size" {
+  description = "Desired number of development worker nodes."
+  type        = number
+  default     = 1
+}
+
+# מאפשר להתרחב בעתיד עד שתי מכונות עובדים.
+variable "eks_node_max_size" {
+  description = "Maximum number of development worker nodes."
+  type        = number
+  default     = 2
+}
+
+# מגדיר דיסק מקומי מינימלי למכונת עובד.
+variable "eks_node_disk_size" {
+  description = "Root disk size in GiB for each development worker node."
+  type        = number
+  default     = 20
+}
+
 # מגדיר אילו כתובות ציבוריות רשאיות לנהל את האשכול.
 variable "eks_public_access_cidrs" {
   description = "CIDR ranges allowed to reach the public EKS API endpoint."

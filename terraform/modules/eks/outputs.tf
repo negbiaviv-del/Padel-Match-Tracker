@@ -27,3 +27,21 @@ output "control_plane_log_group_name" {
   description = "CloudWatch log group used by the EKS control plane."
   value       = aws_cloudwatch_log_group.cluster.name
 }
+
+# מחזיר את השם של קבוצת מכונות העובדים.
+output "node_group_name" {
+  description = "Name of the managed EKS worker node group."
+  value       = aws_eks_node_group.workers.node_group_name
+}
+
+# מחזיר את כתובת ה־ARN של קבוצת מכונות העובדים.
+output "node_group_arn" {
+  description = "ARN of the managed EKS worker node group."
+  value       = aws_eks_node_group.workers.arn
+}
+
+# מחזיר את מצב קבוצת מכונות העובדים לאחר יצירה.
+output "node_group_status" {
+  description = "Current status of the managed EKS worker node group."
+  value       = aws_eks_node_group.workers.status
+}
