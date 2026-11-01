@@ -75,14 +75,25 @@ variable "eks_node_disk_size" {
   default     = 20
 }
 
-# מגדיר אילו כתובות ציבוריות רשאיות לנהל את האשכול.
+# מגדיר את סוג מכונת הניהול הפרטית.
+variable "management_instance_type" {
+  description = "EC2 instance type used by the private management host."
+  type        = string
+  default     = "t3.micro"
+}
+
+# שומר תאימות לקובץ הגדרות ישן, אך אינו מופעל בסביבה הפרטית.
 variable "eks_public_access_cidrs" {
-  description = "CIDR ranges allowed to reach the public EKS API endpoint."
+  description = "CIDR ranges reserved only if a public EKS endpoint is enabled in another environment."
   type        = list(string)
+  default     = []
 
   validation {
-    condition     = length(var.eks_public_access_cidrs) > 0
-    error_message = "At least one allowed public CIDR is required."
+    condition = alltrue([
+      for cidr in var.eks_public_access_cidrs : can(cidrhost(cidr, 0))
+    ])
+
+    error_message = "Each public access value must be a valid CIDR range."
   }
 }
 

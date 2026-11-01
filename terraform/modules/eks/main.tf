@@ -32,12 +32,14 @@ resource "aws_eks_cluster" "this" {
     support_type = "STANDARD"
   }
 
-  # מחבר את האשכול לסאבנטים הפרטיים ומגדיר את נתיבי הגישה לניהול.
+  # מחבר את האשכול לסאבנטים הפרטיים ומגדיר נתיב ניהול פרטי בלבד.
   vpc_config {
     subnet_ids              = var.subnet_ids
     endpoint_private_access = var.endpoint_private_access
     endpoint_public_access  = var.endpoint_public_access
-    public_access_cidrs     = var.public_access_cidrs
+
+    # מוסיף כתובות ציבוריות רק אם נתיב ציבורי הופעל במפורש.
+    public_access_cidrs = var.endpoint_public_access ? var.public_access_cidrs : null
   }
 
   tags = merge(
@@ -50,6 +52,20 @@ resource "aws_eks_cluster" "this" {
 
   # מוודא שקבוצת היומנים קיימת לפני שהאשכול שולח אליה מידע.
   depends_on = [aws_cloudwatch_log_group.cluster]
+}
+
+# מאפשר רק למכונת הניהול הפרטית לגשת לממשק EKS בפורט מאובטח.
+resource "aws_vpc_security_group_ingress_rule" "cluster_api_from_management" {
+  security_group_id            = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+  referenced_security_group_id = var.management_security_group_id
+
+  description = "Allows private EKS API access from the management instance."
+  ip_protocol = "tcp"
+  from_port   = 443
+  to_port     = 443
+
+  # ממתין ליצירת קבוצת האבטחה האוטומטית של האשכול.
+  depends_on = [aws_eks_cluster.this]
 }
 
 # יוצר קבוצת מכונות עובדים מנוהלת שעליה ירוצו הפודים של היישום.
@@ -96,7 +112,7 @@ resource "aws_eks_node_group" "workers" {
     },
   )
 
-  # מוודא שסדר גדלי הקבוצה הגיוני לפני יצירה ב-AWS.
+  # מוודא שסדר גדלי הקבוצה הגיוני לפני יצירה ב־AWS.
   lifecycle {
     precondition {
       condition = (
@@ -112,14 +128,14 @@ resource "aws_eks_node_group" "workers" {
   depends_on = [aws_eks_cluster.this]
 }
 
-# יוצר רשומת גישה מפורשת למנהל האשכול.
+# יוצר רשומת גישה מפורשת למנהל האשכול הראשי.
 resource "aws_eks_access_entry" "cluster_admin" {
   cluster_name  = aws_eks_cluster.this.name
   principal_arn = var.cluster_admin_principal_arn
   type          = "STANDARD"
 }
 
-# מעניק למנהל האשכול הרשאות מלאות ברמת האשכול.
+# מעניק למנהל האשכול הראשי הרשאות מלאות ברמת האשכול.
 resource "aws_eks_access_policy_association" "cluster_admin" {
   cluster_name  = aws_eks_cluster.this.name
   principal_arn = var.cluster_admin_principal_arn
@@ -132,4 +148,26 @@ resource "aws_eks_access_policy_association" "cluster_admin" {
 
   # מוודא שרשומת הגישה נוצרה לפני חיבור המדיניות.
   depends_on = [aws_eks_access_entry.cluster_admin]
+}
+
+# יוצר רשומת גישה למכונת הניהול הפרטית בלבד.
+resource "aws_eks_access_entry" "management" {
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = var.management_role_arn
+  type          = "STANDARD"
+}
+
+# מעניק למכונת הניהול הרשאות ניהול עבור פעולות תשתית ופריסה.
+resource "aws_eks_access_policy_association" "management" {
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = var.management_role_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+  # מחיל את ההרשאה על כל האשכול.
+  access_scope {
+    type = "cluster"
+  }
+
+  # מוודא שרשומת הגישה נוצרה לפני חיבור המדיניות.
+  depends_on = [aws_eks_access_entry.management]
 }

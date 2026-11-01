@@ -34,9 +34,9 @@ output "eks_cluster_arn" {
   value       = module.eks.cluster_arn
 }
 
-# מחזיר את כתובת ה־API של האשכול.
+# מחזיר את כתובת ה־API הפרטית של האשכול.
 output "eks_cluster_endpoint" {
-  description = "API endpoint of the EKS cluster."
+  description = "Private API endpoint of the EKS cluster."
   value       = module.eks.cluster_endpoint
 }
 
@@ -50,6 +50,24 @@ output "eks_cluster_oidc_issuer_url" {
 output "eks_control_plane_log_group_name" {
   description = "CloudWatch log group used by the EKS control plane."
   value       = module.eks.control_plane_log_group_name
+}
+
+# מחזיר את מזהה מכונת הניהול לצורך התחברות דרך Session Manager.
+output "management_instance_id" {
+  description = "ID of the private management EC2 instance."
+  value       = module.management.instance_id
+}
+
+# מחזיר את כתובת מכונת הניהול בתוך הרשת הפרטית.
+output "management_private_ip" {
+  description = "Private IP address of the management EC2 instance."
+  value       = module.management.private_ip
+}
+
+# מחזיר את תפקיד ההרשאות של מכונת הניהול.
+output "management_role_arn" {
+  description = "IAM role ARN used by the management EC2 instance."
+  value       = module.management.role_arn
 }
 
 # מחזיר את שמות מאגרי התמונות של סביבת הפיתוח.

@@ -1,7 +1,2 @@
 # מגדיר זהות לדוגמה שתנהל את האשכול.
 cluster_admin_principal_arn = "arn:aws:iam::<account-id>:user/<iam-user-name>"
-
-# מגדיר כתובת ציבורית לדוגמה שתוכל לנהל את האשכול.
-eks_public_access_cidrs = [
-  "203.0.113.10/32",
-]

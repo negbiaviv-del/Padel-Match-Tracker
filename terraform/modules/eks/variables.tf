@@ -22,6 +22,18 @@ variable "cluster_admin_principal_arn" {
   type        = string
 }
 
+# מגדיר את קבוצת האבטחה של מכונת הניהול הפרטית.
+variable "management_security_group_id" {
+  description = "Security group ID of the private management instance."
+  type        = string
+}
+
+# מגדיר את תפקיד ההרשאות של מכונת הניהול הפרטית.
+variable "management_role_arn" {
+  description = "IAM role ARN granted administrator access from the management instance."
+  type        = string
+}
+
 # מגדיר את הסאבנטים הפרטיים שבהם האשכול ומכונות העובדים יעבדו.
 variable "subnet_ids" {
   description = "Private subnet IDs used by the EKS cluster and worker nodes."
@@ -51,14 +63,18 @@ variable "endpoint_public_access" {
   type        = bool
 }
 
-# מגביל את הגישה הציבורית לכתובות מורשות בלבד.
+# מגדיר כתובות ציבוריות לשימוש רק אם נתיב ציבורי יופעל בעתיד.
 variable "public_access_cidrs" {
-  description = "CIDR ranges allowed to reach the public EKS API endpoint."
+  description = "CIDR ranges allowed to reach the public EKS API endpoint when enabled."
   type        = list(string)
+  default     = []
 
   validation {
-    condition     = length(var.public_access_cidrs) > 0
-    error_message = "At least one allowed public CIDR is required."
+    condition = alltrue([
+      for cidr in var.public_access_cidrs : can(cidrhost(cidr, 0))
+    ])
+
+    error_message = "Each public access value must be a valid CIDR range."
   }
 }
 
