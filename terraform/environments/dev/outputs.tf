@@ -51,3 +51,21 @@ output "eks_control_plane_log_group_name" {
   description = "CloudWatch log group used by the EKS control plane."
   value       = module.eks.control_plane_log_group_name
 }
+
+# מחזיר את שמות מאגרי התמונות של סביבת הפיתוח.
+output "ecr_repository_names" {
+  description = "Names of ECR repositories for the development environment."
+  value       = module.ecr.repository_names
+}
+
+# מחזיר את כתובות מאגרי התמונות לצורך בנייה ופריסה.
+output "ecr_repository_urls" {
+  description = "URLs of ECR repositories for the development environment."
+  value       = module.ecr.repository_urls
+}
+
+# מחזיר את מזהי מאגרי התמונות לצורכי הרשאות ואבחון.
+output "ecr_repository_arns" {
+  description = "ARNs of ECR repositories for the development environment."
+  value       = module.ecr.repository_arns
+}
