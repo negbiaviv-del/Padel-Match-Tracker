@@ -47,21 +47,21 @@ variable "eks_node_capacity_type" {
   default     = "ON_DEMAND"
 }
 
-# מגדיר שמכונת עובד אחת תישאר זמינה בסביבת הפיתוח.
+# משאיר לפחות שתי מכונות עובדים זמינות לפי דרישת המטלה.
 variable "eks_node_min_size" {
   description = "Minimum number of development worker nodes."
   type        = number
-  default     = 1
+  default     = 2
 }
 
-# מגדיר שמכונת עובד אחת תיווצר בעת ההקמה הראשונית.
+# יוצר שתי מכונות עובדים כבר בהקמה הראשונית.
 variable "eks_node_desired_size" {
   description = "Desired number of development worker nodes."
   type        = number
-  default     = 1
+  default     = 2
 }
 
-# מאפשר להתרחב בעתיד עד שתי מכונות עובדים.
+# משאיר את קבוצת הבסיס על שתי מכונות קבועות.
 variable "eks_node_max_size" {
   description = "Maximum number of development worker nodes."
   type        = number

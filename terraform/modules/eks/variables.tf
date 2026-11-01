@@ -97,36 +97,36 @@ variable "node_capacity_type" {
   }
 }
 
-# מגדיר את מספר מכונות העובדים המינימלי.
+# מונע יצירה של פחות משתי מכונות עובדים.
 variable "node_min_size" {
   description = "Minimum number of worker nodes."
   type        = number
 
   validation {
-    condition     = var.node_min_size >= 1
-    error_message = "At least one worker node is required."
+    condition     = var.node_min_size >= 2
+    error_message = "At least two worker nodes are required."
   }
 }
 
-# מגדיר את מספר מכונות העובדים שייווצרו בתחילת ההקמה.
+# מונע הקמה ראשונית של פחות משתי מכונות עובדים.
 variable "node_desired_size" {
   description = "Desired number of worker nodes."
   type        = number
 
   validation {
-    condition     = var.node_desired_size >= 1
-    error_message = "Desired worker node count must be at least one."
+    condition     = var.node_desired_size >= 2
+    error_message = "Desired worker node count must be at least two."
   }
 }
 
-# מגדיר את המספר המרבי של מכונות עובדים בעת הרחבה עתידית.
+# מוודא שגם הגבול העליון מאפשר לפחות שתי מכונות עובדים.
 variable "node_max_size" {
   description = "Maximum number of worker nodes."
   type        = number
 
   validation {
-    condition     = var.node_max_size >= 1
-    error_message = "Maximum worker node count must be at least one."
+    condition     = var.node_max_size >= 2
+    error_message = "Maximum worker node count must be at least two."
   }
 }
 
