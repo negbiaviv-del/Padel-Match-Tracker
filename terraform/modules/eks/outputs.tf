@@ -22,6 +22,12 @@ output "cluster_oidc_issuer_url" {
   value       = aws_eks_cluster.this.identity[0].oidc[0].issuer
 }
 
+# מחזיר את מזהה קבוצת האבטחה הראשית ש־EKS יצר עבור האשכול.
+output "cluster_security_group_id" {
+  description = "ID of the EKS cluster security group."
+  value       = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+}
+
 # מחזיר את שם קבוצת היומנים של שכבת הניהול.
 output "control_plane_log_group_name" {
   description = "CloudWatch log group used by the EKS control plane."

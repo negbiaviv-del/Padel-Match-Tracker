@@ -87,3 +87,21 @@ output "ecr_repository_arns" {
   description = "ARNs of ECR repositories for the development environment."
   value       = module.ecr.repository_arns
 }
+
+# מחזיר את תפקיד בקר Karpenter לצורך חיבור לחשבון השירות.
+output "karpenter_controller_role_arn" {
+  description = "ARN of the IAM role used by the Karpenter controller."
+  value       = module.karpenter.controller_role_arn
+}
+
+# מחזיר את תפקיד מכונות Karpenter לצורכי אבחון והרשאות.
+output "karpenter_node_role_arn" {
+  description = "ARN of the IAM role used by Karpenter-provisioned nodes."
+  value       = module.karpenter.node_role_arn
+}
+
+# מחזיר את פרופיל המכונה שנחבר ל־EC2NodeClass בהמשך.
+output "karpenter_node_instance_profile_name" {
+  description = "Name of the IAM instance profile used by Karpenter-provisioned nodes."
+  value       = module.karpenter.node_instance_profile_name
+}
