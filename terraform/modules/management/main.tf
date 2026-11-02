@@ -114,13 +114,68 @@ resource "aws_instance" "management" {
 
   iam_instance_profile = aws_iam_instance_profile.management.name
 
-  # מוודא שסוכן Session Manager פעיל בעת עליית המכונה.
+  # מכין את סוכן הניהול ואת כלי Kubernetes בעת עליית המכונה.
   user_data = <<-EOF
     #!/bin/bash
     set -euo pipefail
 
+    # מפעיל את סוכן Session Manager לפני הכנת כלי הניהול.
     systemctl enable amazon-ssm-agent
     systemctl restart amazon-ssm-agent
+
+    # מנסה פעולת התקנה מחדש במקרה של כשל רשת זמני.
+    retry() {
+      local attempts="$1"
+      shift
+
+      local attempt
+      for attempt in $(seq 1 "$attempts"); do
+        if "$@"; then
+          return 0
+        fi
+
+        if [ "$attempt" -eq "$attempts" ]; then
+          echo "Command failed after $attempts attempts: $*" >&2
+          return 1
+        fi
+
+        sleep 5
+      done
+    }
+
+    # מתקין כלים בסיסיים הנחוצים להורדת כלי הניהול.
+    retry 5 dnf install -y curl tar gzip
+
+    # מוריד kubectl בגרסה התואמת לגרסת Kubernetes של האשכול.
+    KUBECTL_VERSION="v${var.kubernetes_version}.0"
+    KUBECTL_URL="https://dl.k8s.io/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl"
+
+    retry 5 curl --fail --show-error --silent --location "$KUBECTL_URL" --output /tmp/kubectl
+    retry 5 curl --fail --show-error --silent --location "$KUBECTL_URL.sha256" --output /tmp/kubectl.sha256
+
+    echo "$(cat /tmp/kubectl.sha256)  /tmp/kubectl" | sha256sum --check --status
+    install -m 0755 /tmp/kubectl /usr/local/bin/kubectl
+
+    # מוריד Helm בגרסה קבועה ובודק את שלמות הקובץ לפני התקנה.
+    HELM_VERSION="v3.18.4"
+    HELM_ARCHIVE="helm-$HELM_VERSION-linux-amd64.tar.gz"
+    HELM_URL="https://get.helm.sh/$HELM_ARCHIVE"
+
+    retry 5 curl --fail --show-error --silent --location "$HELM_URL" --output "/tmp/$HELM_ARCHIVE"
+    retry 5 curl --fail --show-error --silent --location "$HELM_URL.sha256sum" --output "/tmp/$HELM_ARCHIVE.sha256sum"
+
+    (
+      cd /tmp
+      sha256sum --check "$HELM_ARCHIVE.sha256sum"
+    )
+
+    tar -xzf "/tmp/$HELM_ARCHIVE" -C /tmp
+    install -m 0755 /tmp/linux-amd64/helm /usr/local/bin/helm
+
+    # מתעד ביומן העלייה שהכלים זמינים לצורך אבחון עתידי.
+    aws --version
+    kubectl version --client --output=yaml
+    helm version --short
   EOF
 
   # מחייב שימוש ב־IMDSv2 עבור פרטי ההרשאות של המכונה.

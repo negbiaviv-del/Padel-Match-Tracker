@@ -8,6 +8,9 @@ module "management" {
   # מגביל את הרשאות הקריאה לאשכול של סביבת הפיתוח בלבד.
   cluster_name = local.cluster_name
 
+  # מעביר את גרסת האשכול כדי להתקין לקוח kubectl תואם.
+  kubernetes_version = var.kubernetes_version
+
   # מחבר את מכונת הניהול לרשת הפרטית שכבר נוצרה.
   vpc_id    = module.networking.vpc_id
   subnet_id = module.networking.private_subnet_ids[0]

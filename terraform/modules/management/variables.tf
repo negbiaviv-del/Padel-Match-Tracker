@@ -10,6 +10,12 @@ variable "cluster_name" {
   type        = string
 }
 
+# מגדיר את גרסת Kubernetes שאליה כלי kubectl צריך להתאים.
+variable "kubernetes_version" {
+  description = "Kubernetes version used by the EKS cluster managed from the private instance."
+  type        = string
+}
+
 # מגדיר את מזהה רשת ה־VPC שבה תוקם המכונה.
 variable "vpc_id" {
   description = "ID of the VPC that contains the management instance."
