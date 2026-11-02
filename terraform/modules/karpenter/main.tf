@@ -324,6 +324,62 @@ data "aws_iam_policy_document" "controller" {
     }
   }
 
+  # מאפשר לבקר להוסיף רק תגיות מעקב מצומצמות למכונה שכבר נוצרה עבור האשכול.
+  statement {
+    sid    = "AllowScopedResourceTagging"
+    effect = "Allow"
+
+    actions = [
+      "ec2:CreateTags",
+    ]
+
+    resources = [
+      "arn:${data.aws_partition.current.partition}:ec2:${data.aws_region.current.region}:*:instance/*",
+    ]
+
+    # מגביל את הפעולה למכונה שכבר מסומנת כשייכת לאשכול.
+    condition {
+      test     = "StringEquals"
+      variable = "aws:ResourceTag/kubernetes.io/cluster/${var.cluster_name}"
+
+      values = [
+        "owned",
+      ]
+    }
+
+    # מגביל את הפעולה למכונה ששויכה ל־NodePool של Karpenter.
+    condition {
+      test     = "StringLike"
+      variable = "aws:ResourceTag/karpenter.sh/nodepool"
+
+      values = [
+        "*",
+      ]
+    }
+
+    # מוודא שאם תג שם האשכול נשלח, הוא תואם לאשכול הזה בלבד.
+    condition {
+      test     = "StringEqualsIfExists"
+      variable = "aws:RequestTag/eks:eks-cluster-name"
+
+      values = [
+        var.cluster_name,
+      ]
+    }
+
+    # מגביל את שמות התגיות ש־Karpenter יכול להוסיף לאחר היצירה.
+    condition {
+      test     = "ForAllValues:StringEquals"
+      variable = "aws:TagKeys"
+
+      values = [
+        "eks:eks-cluster-name",
+        "karpenter.sh/nodeclaim",
+        "Name",
+      ]
+    }
+  }
+
   statement {
     sid    = "AllowScopedDeletion"
     effect = "Allow"

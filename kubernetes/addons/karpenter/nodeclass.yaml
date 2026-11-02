@@ -1,0 +1,26 @@
+# מגדיר את הגדרות AWS למכונות ש־Karpenter ייצור.
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  # נותן למחלקת המכונות שם ברור עבור עומסי העבודה.
+  name: padel-workloads
+spec:
+  # משתמש במשפחת Amazon Linux 2023 עבור מכונות חדשות.
+  amiFamily: AL2023
+
+  # משתמש בפרופיל המכונה שנוצר מראש על ידי Terraform.
+  instanceProfile: padel-match-tracker-dev-karpenter-node
+
+  # בוחר תמונת Amazon Linux 2023 עדכנית.
+  amiSelectorTerms:
+    - alias: al2023@latest
+
+  # בוחר רק סאבנטים פרטיים שסומנו עבור Karpenter.
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: padel-match-tracker-dev-eks
+
+  # בוחר את קבוצת האבטחה שסומנה עבור מכונות Karpenter.
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: padel-match-tracker-dev-eks

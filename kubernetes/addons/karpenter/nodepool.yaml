@@ -1,0 +1,39 @@
+# מגדיר מתי ואילו מכונות Karpenter רשאי ליצור.
+apiVersion: karpenter.sh/v1
+kind: NodePool
+metadata:
+  # נותן למדיניות המכונות שם ברור עבור עומסי העבודה.
+  name: padel-workloads
+spec:
+  template:
+    spec:
+      # מחבר את המדיניות להגדרות AWS שבקובץ EC2NodeClass.
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: padel-workloads
+
+      # מגביל את Karpenter למכונות Linux בארכיטקטורת AMD64.
+      requirements:
+        - key: kubernetes.io/arch
+          operator: In
+          values:
+            - amd64
+
+        - key: kubernetes.io/os
+          operator: In
+          values:
+            - linux
+
+        # בוחר מכונות On-Demand יציבות ולא מוסיף Spot בשלב זה.
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values:
+            - on-demand
+
+        # מגביל את הבחירה למכונות קטנות המתאימות לסביבת הפיתוח.
+        - key: node.kubernetes.io/instance-type
+          operator: In
+          values:
+            - t3.small
+            - t3.medium
